@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "proto:gen": "./scripts/generate-proto.sh",
+    "grpc:server": "ts-node ./libs/proto/src/lib/server.grpc.ts",
+    "grpc:client": "ts-node ./libs/proto/src/lib/client.grpc.ts"
   },
   "author": "Emmanuel Madubuike",
   "license": "ISC",
@@ -24,6 +27,7 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@types/bcrypt": "^5.0.2",
+    "@types/google-protobuf": "^3.15.12",
     "@types/jest": "^29.4.0",
     "@types/node": "~18.16.9",
     "@types/passport-jwt": "^4.0.1",
@@ -40,10 +44,13 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.10.10",
+    "@grpc/proto-loader": "^0.7.13",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.2",
     "@nestjs/jwt": "^10.2.0",
+    "@nestjs/microservices": "^10.3.10",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.2",
     "@nestjs/swagger": "^7.4.0",
@@ -53,12 +60,20 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.5",
+    "google-protobuf": "^3.21.2",
+    "grpc-tools": "^1.12.4",
+    "grpc-web": "^1.5.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.12.0",
+    "protoc-gen-grpc-web": "^1.5.0",
+    "protoc-gen-ts": "^0.8.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "swagger-ui-express": "^5.0.1",
+    "ts-node-dev": "^2.0.0",
+    "ts-proto": "^1.181.0",
+    "ts-protoc-gen": "^0.15.0",
     "tslib": "^2.3.0",
     "typeorm": "^0.3.20"
   }

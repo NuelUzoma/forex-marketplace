@@ -11,13 +11,13 @@ async function bootstrap() {
   // Swagger Module for Documentation
   const config = new DocumentBuilder()
     .setTitle('Forex Marketplace')
-    .setDescription('The Forex Marketplace API description')
+    .setDescription('Users Microservice')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
   
   await app.listen(port);
   

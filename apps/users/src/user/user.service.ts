@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { User } from "./entities/user.entity";
 import { Profile } from '../profile/entities/profile.entity';
 import { UserDto } from './dto/user.dto';
+import { GrpcMethod } from '@nestjs/microservices';
+import { GetUserByIdRequest } from '../../../../libs/proto/src/generated/user/GetUserByIdRequest';
+import { GetUserByIdResponse } from '../../../../libs/proto/src/generated/user/GetUserByIdResponse';
 
 
 @Injectable()
@@ -16,9 +19,6 @@ export class UserService{
     ) {}
 
     async create(userDto: UserDto): Promise<User> {
-        // const profile = this.profileRepository.create();
-        // await this.profileRepository.save(profile);
-
         const user = new User();
         user.username = userDto.username;
         user.email = userDto.email;
@@ -63,5 +63,17 @@ export class UserService{
 
         const profile = Object.assign(user.profile, profileData);
         return this.profileRepository.save(profile);
+    }
+
+    // Grpc Method for the UserId
+    @GrpcMethod('UserService', 'GetUserById')
+    async getUserById(data: GetUserByIdRequest): Promise<GetUserByIdResponse> {
+        const userId = data.userId;
+        const user = await this.userRepository.findOne({where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        
+        return { userId: user.id , username: user.username, email: user.email };
     }
 }

@@ -23,6 +23,7 @@ export class User {
     @OneToOne(() => Profile, profile => profile.user, { cascade: true })
     @JoinColumn({ name: 'profileId', referencedColumnName: 'id'})
     profile!: Profile;
+    GetUserByIdResponse: any;
 
     @BeforeInsert()
     @BeforeUpdate()

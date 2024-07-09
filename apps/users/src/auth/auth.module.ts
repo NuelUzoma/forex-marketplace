@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
@@ -12,7 +12,7 @@ import { JwtStrategy } from './jwt.strategy';
     PassportModule,
     JwtModule.register({
       global: true, // Registered as global
-      secret: 'secret-key', // Secret Key
+      secret: 'sdiabalkvioa182afafgwkwq26494wygabcuiackj25298kdv', // Secret Key
       signOptions: { expiresIn: '60m' } // expires in 1 Hour
     }),
   ],

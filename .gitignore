@@ -3,7 +3,7 @@
 .nx/cache
 .nx
 
-# Node MOdules
+# Node Modules
 node_modules
 
 # Nest build

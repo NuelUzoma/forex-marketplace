@@ -5,8 +5,8 @@ import { User } from "./entities/user.entity";
 import { Profile } from '../profile/entities/profile.entity';
 import { UserDto } from './dto/user.dto';
 import { GrpcMethod } from '@nestjs/microservices';
-import { GetUserByIdRequest } from '../../../../libs/proto/src/generated/user/GetUserByIdRequest';
-import { GetUserByIdResponse } from '../../../../libs/proto/src/generated/user/GetUserByIdResponse';
+import { GetUserByIdRequest } from '../../../../protos/generated/user/GetUserByIdRequest';
+import { GetUserByIdResponse } from '../../../../protos/generated/user/GetUserByIdResponse';
 
 
 @Injectable()

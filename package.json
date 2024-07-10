@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "proto:gen": "./scripts/generate-proto.sh",
-    "grpc:server": "ts-node ./libs/proto/src/lib/server.grpc.ts",
-    "grpc:client": "ts-node ./libs/proto/src/lib/client.grpc.ts"
+    "grpc:server": "ts-node ./servers/server.grpc.ts",
+    "grpc:client": "ts-node ./servers/client.grpc.ts"
   },
   "author": "Emmanuel Madubuike",
   "license": "ISC",

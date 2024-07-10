@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Put, Param, UseGuards, Request } from '@ne
 import { Wallet } from './entities/wallet.entity';
 import { WalletDto } from './dto/wallet.dto';
 import { WalletService } from './wallet.service';
-import { AuthGuard } from '../../../users/src/auth/auth.guard'
+import { AuthGuard } from '../../../../authentication/auth.guard'
 
 
 @Controller('wallets')

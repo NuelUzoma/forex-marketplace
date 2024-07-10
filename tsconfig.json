@@ -7,8 +7,8 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "proto": ["libs/proto/src/index.ts"],
-      "protos": ["libs/src/index.ts"]
+      "proto": ["./libs/src/index.ts"],
+      "protos": ["./protos/index.ts"]
     }
   }
 }

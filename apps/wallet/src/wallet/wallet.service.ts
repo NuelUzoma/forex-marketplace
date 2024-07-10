@@ -5,17 +5,18 @@ import { ClientGrpc, Client, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { Wallet } from './entities/wallet.entity';
 import { WalletDto } from './dto/wallet.dto';
-import { GetUserByIdResponse } from '../../../../libs/proto/src/generated/user/GetUserByIdResponse';
-import { UserServiceClient } from '../../../../libs/proto/src/generated/user/UserService';
+import { GetUserByIdResponse } from '../../../../protos/generated/user/GetUserByIdResponse';
+import { UserServiceClient } from '../../../../protos/generated/user/UserService';
 
 
 @Injectable()
 export class WalletService implements OnModuleInit {
+    // Grpc client
     @Client({
         transport: Transport.GRPC,
         options: {
           package: 'user',
-          protoPath: join(__dirname, '../../../libs/proto/src/user.proto'),
+          protoPath: join(__dirname, '../../../protos/user.proto'),
         },
     })
     private client!: ClientGrpc;

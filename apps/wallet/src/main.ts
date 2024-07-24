@@ -17,7 +17,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3002;
   await app.listen(port);
   Logger.log(
     `🚀 Wallet Application is running on: http://localhost:${port}/${globalPrefix}`

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db_user:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: Uzoma@2000
+      POSTGRES_DB: user_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-user-data:/var/lib/postgresql/data
+  
+  db_wallet:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: Uzoma@2000
+      POSTGRES_DB: wallet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-wallet-data:/var/lib/postgresql/data
+  
+  users:
+    container_name: users_microservice
+    restart: always
+    build:
+      context: .
+      dockerfile: apps/users/Dockerfile
+    env_file:
+      - .env.user
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db_user
+  
+  wallet:
+    container_name: wallet_microservice
+    restart: always
+    build:
+      context: .
+      dockerfile: apps/wallet/Dockerfile
+    env_file:
+      - .env.wallet
+    ports:
+      - "3002:3002"
+    depends_on:
+      - db_wallet
+
+volumes:
+  db-user-data:
+  db-wallet-data:

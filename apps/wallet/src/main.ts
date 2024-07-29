@@ -1,26 +1,28 @@
+import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'wallet', // Wallet microservice package
+        protoPath: join(__dirname, '../../../protos/wallet.proto'), // Path to wallet proto file
+        url: '0.0.0.0:50052' // Wallet microservice listening port
+      },
+    }
+  );
+
   const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
 
-  // Swagger Module for Documentation
-  const config = new DocumentBuilder()
-    .setTitle('Forex Marketplace')
-    .setDescription('Wallets Microservice')
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  const port = process.env.PORT || 3002;
-  await app.listen(port);
+  await app.listen();
+  
   Logger.log(
-    `🚀 Wallet Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Wallet Microservice is running on: http://localhost:50052/${globalPrefix}`
   );
 }
 

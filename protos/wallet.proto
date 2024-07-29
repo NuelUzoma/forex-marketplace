@@ -1,0 +1,50 @@
+syntax = 'proto3';
+
+package wallet;
+
+service WalletService {
+    rpc CreateWallet (CreateWalletRequest) returns (Wallet);
+    rpc GetWallet (GetWalletRequest) returns (Wallet);
+    rpc GetBalance (GetBalanceRequest) returns (BalanceResponse);
+    rpc UpdateBalance (UpdateBalanceRequest) returns (UpdateBalanceResponse);
+}
+
+message CreateWalletRequest {
+    int32 userId = 1;
+    repeated string currencies = 2;
+}
+
+message GetWalletRequest {
+    int32 userId = 1;
+}
+
+message Wallet {
+    int32 id = 1;
+    int32 userId = 2;
+    repeated CurrencyBalance currencyBalances = 3;
+}
+
+message CurrencyBalance {
+    string currency = 1;
+    double balance = 2;
+}
+
+message GetBalanceRequest {
+    int32 userId = 1;
+    string currency = 2;
+}
+
+message BalanceResponse {
+    double balance = 1;
+}
+
+message UpdateBalanceRequest {
+    int32 userId = 1;
+    string currency = 2;
+    double amount = 3;
+}
+
+message UpdateBalanceResponse {
+    bool success = 1;
+    double newBalance = 2;
+}

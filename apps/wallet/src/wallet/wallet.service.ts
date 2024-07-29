@@ -7,6 +7,9 @@ import { Wallet } from './entities/wallet.entity';
 import { WalletDto } from './dto/wallet.dto';
 import { GetUserByIdResponse } from '../../../../protos/generated/user/GetUserByIdResponse';
 import { UserServiceClient } from '../../../../protos/generated/user/UserService';
+import { UpdateBalanceRequest } from "../../../../protos/generated/wallet/UpdateBalanceRequest";
+import { CurrencyBalance } from './entities/currencyBalance.entity';
+import { UpdateBalanceResponse } from '../../../../protos/generated/wallet/UpdateBalanceResponse';
 
 
 @Injectable()
@@ -24,7 +27,9 @@ export class WalletService implements OnModuleInit {
 
     constructor(
         @InjectRepository(Wallet)
-        private readonly walletRepository: Repository<Wallet>
+        private readonly walletRepository: Repository<Wallet>,
+        @InjectRepository(CurrencyBalance)
+        private readonly currencyBalanceRepository: Repository<CurrencyBalance>
     ) {}
 
     onModuleInit() {
@@ -32,17 +37,28 @@ export class WalletService implements OnModuleInit {
     }
 
     // Method to create wallet
-    async createWallet(walletDto: WalletDto, userId: number): Promise<Wallet> {        
+    async createWallet(walletDto: WalletDto): Promise<Wallet> {        
         try {
             // @ts-ignore
-            const userResponse: GetUserByIdResponse = await this.userService.GetUserById({ userId });
+            const userResponse: GetUserByIdResponse = await this.userService.GetUserById({ userId: walletDto.userId });
             
             if (!userResponse) {
                 throw new Error('User not found');
             }
             
-            const wallet = this.walletRepository.create({...walletDto, userId});
-            return this.walletRepository.save(wallet);
+            const wallet = this.walletRepository.create({ userId: walletDto.userId });
+            const savedWallet = await this.walletRepository.save(wallet); // Save wallet
+
+            // Create initial wallet balances
+            for (const currency of walletDto.currencies) {
+                await this.currencyBalanceRepository.save({
+                    wallet: savedWallet,
+                    currency,
+                    balance: 0
+                });
+            }
+
+            return savedWallet;
         } catch (error) {
             throw new Error(`Error creating wallet: ${error}`);
         }
@@ -50,7 +66,11 @@ export class WalletService implements OnModuleInit {
 
     // Method to get logged in user wallet
     async getWalletByUserId(userId: number): Promise<Wallet> {
-        const wallet = await this.walletRepository.findOne({ where: { userId } });
+        const wallet = await this.walletRepository.findOne({
+            where: { userId },
+            relations: ['currencyBalances']
+        });
+        
         if (!wallet) {
             throw new Error('Wallet not found!');
         }
@@ -58,40 +78,91 @@ export class WalletService implements OnModuleInit {
         return wallet;
     }
 
-    // Method for wallet-to-wallet deposit
-    async performDeposit(userId: number, walletId: number, amount: number): Promise<any> {
+    // Retrieve the balances for each currency
+    async getBalance(userId: number, currency: string): Promise<number> {
+        const wallet = await this.getWalletByUserId(userId);
+
+        // Find the balances per currency
+        const currencyBalance = wallet.currencyBalances.find(cb => cb.currency === currency);
+
+        if (!currencyBalance) {
+            throw new Error(`Balance for currency ${currency} not found`);
+        }
+
+        // Return the balance
+        return currencyBalance.balance;
+    }
+
+    // Update the balances for each wallet transfer
+    async updateBalance(updateBalanceRequest: UpdateBalanceRequest): Promise<UpdateBalanceResponse> {
+        const { userId, currency, amount } = updateBalanceRequest;
+        const wallet = await this.getWalletByUserId(Number(userId));
+
+        // Find the balances per currency
+        let currencyBalance = wallet.currencyBalances.find(cb => cb.currency === currency);
+
+        if (!currencyBalance) {
+            currencyBalance = this.currencyBalanceRepository.create({
+                wallet,
+                currency,
+                balance: 0
+            });
+        }
+
+        currencyBalance.balance += Number(amount); // Update the balance
+
+        await this.currencyBalanceRepository.save(currencyBalance);
+
+        return { success: true, newBalance: currencyBalance.balance };
+    }
+
+    // Method for wallet-to-wallet transfer
+    async performTransfer(
+        senderId: number,
+        reciepientId: number,
+        fromCurrency: string,
+        toCurrency: string,
+        amount: number,
+        exchangeRate: number
+    ): Promise<void> {
         try {
             // Deposit amount validation
-            if (amount <= 0 || !Number.isInteger(amount)) {
-                throw new Error('Deposit amount must be a positive integer greater than 0');
+            if (amount <= 0) {
+                throw new Error('Transfer amount must be greater than 0');
             }
 
-            // Retrieve user wallet
-            const userWallet = await this.walletRepository.findOne({ where: { userId: userId }}); // Depositor
-            // Retrieve reciepient wallet
-            const reciepientWallet = await this.walletRepository.findOne({ where: { id: walletId }}); // Reciepient
-
-            // Return error if wallet is not found
-            if (!userWallet || !reciepientWallet) {
-                throw new Error('Wallet not found');
-            }
+            const senderWallet = await this.getWalletByUserId(senderId); // Sender's wallet
+            const reciepientWallet = await this.getWalletByUserId(reciepientId); // Reciepient wallet
 
             // Prohibit funds deposit to one's wallet
-            if (userWallet.userId === reciepientWallet.userId) {
-                throw new Error('You no fit send money to yourself, Chief');
+            if (senderWallet.userId === reciepientWallet.userId) {
+                throw new Error('Transfer to your own wallet is prohibited');
             }
 
-            // Perform the deposit by updating the balances
-            userWallet.balance -= amount;
-            reciepientWallet.balance += amount;
+            // Retrieve balance and check for insufficient funds for transfer
+            const senderBalance = await this.getBalance(senderId, fromCurrency);
+            if (senderBalance < amount) {
+                throw new Error('Insufficient Balance');
+            }
 
-            // Update wallets records in the database
-            await this.walletRepository.save(userWallet);
-            await this.walletRepository.save(reciepientWallet)
+            const toAmount = amount * exchangeRate;
 
-            return { message: 'Deposit successful' };
+            // Update wallets balances
+            const updateBalanceSenderRequest: UpdateBalanceRequest = { // Sender
+                userId: senderId,
+                currency: fromCurrency,
+                amount: -amount
+            };
+
+            const updateBalanceReciepientRequest: UpdateBalanceRequest = { // Reciepient
+                userId: reciepientId,
+                currency: toCurrency,
+                amount: toAmount
+            }
+            await this.updateBalance(updateBalanceSenderRequest);
+            await this.updateBalance(updateBalanceReciepientRequest);
         } catch (err) {
-            throw new Error(`Cannot perform deposit: ${err}`);
+            throw new Error(`Cannot perform transfer: ${err}`);
         }
     }
 }

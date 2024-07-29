@@ -1,0 +1,77 @@
+syntax = 'proto3';
+
+package transaction;
+
+service TransactionService {
+    rpc CreateTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
+    rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
+    rpc GetTransactionHistory (GetTransactionHistoryRequest) returns (GetTransactionHistoryResponse);
+    rpc CheckAndUpdateOrders(Empty) returns (Empty);
+}
+
+// Transaction
+message Transaction {
+    int32 id = 1;
+    int32 userId = 2;
+    double fromAmount = 3;
+    string fromCurrency = 4;
+    double toAmount = 5;
+    string toCurrency = 6;
+    double exchangeRate = 7;
+    string status = 8;
+    string timestamp = 9;
+}
+
+// Order
+message Order {
+    int32 id = 1;
+    string type = 2; // buy or sell
+    double fromAmount = 3;
+    string fromCurrency = 4;
+    double toAmount = 5;
+    string toCurrency = 6;
+    double targetRate = 7;
+    string status = 8;
+    string createdAt = 9;
+    string executedAt = 10;
+}
+
+// Create transaction request
+message CreateTransactionRequest {
+    int32 userId = 1;
+    string fromCurrency = 2;
+    string toCurrency = 3;
+    double fromAmount = 4;
+}
+
+// Transaction response
+message CreateTransactionResponse {
+    Transaction transaction = 1;
+}
+
+// Order request
+message CreateOrderRequest {
+    string type = 1;
+    string fromCurrency = 2;
+    string toCurrency = 3;
+    double fromAmount = 4;
+    double targetRate = 5;
+}
+
+// CreateOrder response message
+message CreateOrderResponse {
+    Order order = 1;
+}
+
+// GetTransactionHistory request message
+message GetTransactionHistoryRequest {
+    int32 userId = 1;
+}
+
+// GetTransactionHistory response message
+message GetTransactionHistoryResponse {
+    repeated Transaction transactions = 1;
+}
+
+// Empty message for operations that do not require input or output
+message Empty {}

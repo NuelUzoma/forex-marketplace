@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
+import { CurrencyBalance } from 'src/wallet/entities/currencyBalance.entity';
 
 
 @Module({
@@ -20,12 +21,12 @@ import { Wallet } from 'src/wallet/entities/wallet.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Wallet],
+        entities: [Wallet, CurrencyBalance],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Wallet]),
+    TypeOrmModule.forFeature([Wallet, CurrencyBalance]),
     WalletModule
   ],
   controllers: [],

@@ -5,24 +5,36 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+  const microservice = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
       transport: Transport.GRPC,
       options: {
         package: 'wallet', // Wallet microservice package
         protoPath: join(__dirname, '../../../protos/wallet.proto'), // Path to wallet proto file
-        url: '0.0.0.0:50052' // Wallet microservice listening port
+        url: 'localhost:50052' // Wallet microservice listening port
       },
     }
   );
 
+  await microservice.listen();
+
+  // HTTP server
+  const app = await NestFactory.create(AppModule);
+
+  const port = 3002;
   const globalPrefix = 'api';
 
-  await app.listen();
+  app.setGlobalPrefix(globalPrefix);
+
+  await app.listen(port);
   
   Logger.log(
-    `🚀 Wallet Microservice is running on: http://localhost:50052/${globalPrefix}`
+    `🚀 Wallet gRPC Microservice is running on: http://localhost:50052`
+  );
+
+  Logger.log(
+    `🚀 Wallet HTTP Server is running on: http://localhost:${port}/${globalPrefix}`
   );
 }
 

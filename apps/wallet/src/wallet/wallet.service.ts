@@ -116,7 +116,9 @@ export class WalletService implements OnModuleInit {
         return { success: true, newBalance: currencyBalance.balance };
     }
 
-    // Method for wallet-to-wallet transfer
+    // Deposit funds into one's wallet
+
+    // Method for wallet-to-wallet transfer between users
     async performTransfer(
         senderId: number,
         reciepientId: number,

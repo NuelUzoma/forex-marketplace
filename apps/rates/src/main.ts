@@ -1,21 +1,28 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
+import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'rate', // Rate microservice package
+        protoPath: join(__dirname, '../../../protos/rate.proto'), // Path to rate proto file
+        url: '0.0.0.0:50054' // Rate microservice listening port
+      },
+    }
+  );
+  
   const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+
+  await app.listen();
+  
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Rate Application is running on: http://localhost:50054/${globalPrefix}`
   );
 }
 

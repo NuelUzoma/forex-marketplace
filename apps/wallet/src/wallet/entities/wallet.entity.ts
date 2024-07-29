@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { CurrencyBalance } from './currencyBalance.entity';
 
 @Entity()
 export class Wallet {
@@ -10,6 +11,6 @@ export class Wallet {
     }) // One user per wallet
     userId!: number; // Foreign key to users
 
-    @Column({ default: 0 })
-    balance!: number;
-}
+    @OneToMany(() => CurrencyBalance, currencyBalance => currencyBalance.wallet)
+    currencyBalances!: CurrencyBalance[];
+};

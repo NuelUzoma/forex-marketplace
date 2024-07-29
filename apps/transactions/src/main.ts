@@ -1,21 +1,28 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
+import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'transaction', // Transaction-Order microservice package
+        protoPath: join(__dirname, '../../../protos/transaction.proto'), // Path to proto file
+        url: '0.0.0.0:50053' // Transaction-Order microservice listening port
+      },
+    }
+  );
+  
   const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+
+  await app.listen();
+  
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Transaction-Order Application is running on: http://localhost:50053/${globalPrefix}`
   );
 }
 

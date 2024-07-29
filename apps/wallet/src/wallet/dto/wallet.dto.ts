@@ -1,6 +1,17 @@
-import { IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class WalletDto {
     @IsNumber()
-    balance!: number;
+    userId!: number;
+
+    @IsNotEmpty()
+    currencies!: string[];
+}
+
+export class TransferFundsDto {
+    reciepientUserId!: number;
+    fromCurrency!: string;
+    toCurrency!: string;
+    amount!: number;
+    exchangeRate!: number;
 }

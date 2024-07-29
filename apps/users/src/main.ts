@@ -1,28 +1,28 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-
-  // Swagger Module for Documentation
-  const config = new DocumentBuilder()
-    .setTitle('Forex Marketplace')
-    .setDescription('Users Microservice')
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  const port = process.env.PORT || 3001;
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'user', // User microservice package
+        protoPath: join(__dirname, '../../../protos/user.proto'), // Path to user proto file
+        url: '0.0.0.0:50051' // User microservice listening port
+      }
+    }
+  );
   
-  await app.listen(port);
+  const globalPrefix = 'api';
+  
+  await app.listen();
   
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 User Microservice is running on: http://localhost:50051/${globalPrefix}`
   );
 }
 

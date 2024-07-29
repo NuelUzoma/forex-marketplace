@@ -5,24 +5,37 @@ import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+  // gRPC microservice
+  const microservice = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
       transport: Transport.GRPC,
       options: {
         package: 'user', // User microservice package
         protoPath: join(__dirname, '../../../protos/user.proto'), // Path to user proto file
-        url: '0.0.0.0:50051' // User microservice listening port
+        url: 'localhost:50051' // User microservice listening port
       }
     }
   );
   
-  const globalPrefix = 'api';
+  await microservice.listen();
+
+  // HTTP server
+  const app = await NestFactory.create(AppModule);
   
-  await app.listen();
+  const port = 3001;
+  const globalPrefix = 'api';
+
+  app.setGlobalPrefix(globalPrefix);
+
+  await app.listen(port);
   
   Logger.log(
-    `🚀 User Microservice is running on: http://localhost:50051/${globalPrefix}`
+    `🚀 User gRPC Microservice is running on: http://localhost:50051`
+  );
+
+  Logger.log( 
+    `🚀 User HTTP Server is running on: http://localhost:${port}/${globalPrefix}`
   );
 }
 

@@ -1,10 +1,11 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class WalletDto {
     @IsNumber()
     userId!: number;
 
-    @IsNotEmpty()
+    @IsArray()
+    @IsString({ each: true })
     currencies!: string[];
 }
 

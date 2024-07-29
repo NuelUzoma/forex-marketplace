@@ -52,13 +52,14 @@ export class TransactionOrderService implements OnModuleInit {
         this.rateService = this.rateClient.getService<RateServiceClient>('RateService');
     }
 
-    // Create Transaction
-    async createTransaction(data: CreateTransactionDto): Promise<Transaction> {
+    // Create exchange transaction between a single user wallet
+    async createExchangeTransaction(data: CreateTransactionDto): Promise<Transaction> {
         const getRateRequest: GetRateRequest = {
             fromCurrency: data.fromCurrency,
             toCurrency: data.toCurrency,
         };
 
+        // Fetch the current rates from the rates microservice
         const rateResponse = await new Promise<GetRateResponse__Output>((resolve, reject) => {
             this.rateService.getRate(getRateRequest, (error, response) => {
                 if (error) {
@@ -70,7 +71,7 @@ export class TransactionOrderService implements OnModuleInit {
             });
         });
 
-        const rate = rateResponse.rate;
+        const rate = rateResponse.rate; // rate
         const transaction = this.transactionRepository.create({
             ...data,
             exchangeRate: rate,

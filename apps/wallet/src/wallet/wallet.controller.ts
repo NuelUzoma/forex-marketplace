@@ -26,7 +26,7 @@ export class WalletController {
     }
 
     // Get wallet by userId
-    @Get()
+    @Get(':userId')
     async getWallet(@Request() request: any): Promise<Wallet> {
         const userId = parseInt(request.user?.sub, 10); // Retrieve logged in userId
         if (!userId) {

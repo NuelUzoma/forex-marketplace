@@ -7,6 +7,7 @@ import { UserDto } from './dto/user.dto';
 import { GrpcMethod } from '@nestjs/microservices';
 import { GetUserByIdRequest } from '../../../../protos/generated/user/GetUserByIdRequest';
 import { GetUserByIdResponse } from '../../../../protos/generated/user/GetUserByIdResponse';
+import { ValidationException, UserNotFoundException } from "../../../../libraries/src/index";
 
 
 @Injectable()
@@ -31,8 +32,12 @@ export class UserService{
 
         user.profile = profile; // Assign the profile to the user
 
-        await this.userRepository.save(user);
-        return user;
+        try {
+            await this.userRepository.save(user);
+            return user;
+        } catch (error: any) {
+            throw new ValidationException(`Failed to create user: ${error.message}`)
+        }
     }
 
     async findAll(): Promise<User[]> {
@@ -45,7 +50,7 @@ export class UserService{
 
         if (!user) {
             // Handle the case when the user is not found
-            throw new Error(`User with username ${username} not found`);
+            throw new UserNotFoundException(`User with username ${username} not found`);
         }
     
         return user;
@@ -58,7 +63,7 @@ export class UserService{
         });
 
         if (!user) {
-            throw new Error('User Not Found');
+            throw new UserNotFoundException(`User with Id ${userId} Not Found`);
         }
 
         const profile = Object.assign(user.profile, profileData);
@@ -71,7 +76,7 @@ export class UserService{
         const userId = data.userId;
         const user = await this.userRepository.findOne({where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new UserNotFoundException(`User with Id ${userId} Not Found`);
         }
         
         return { userId: user.id , username: user.username, email: user.email };

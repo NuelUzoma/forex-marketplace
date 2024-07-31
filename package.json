@@ -44,6 +44,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@forex-marketplace-microservices/libraries": "*",
     "@grpc/grpc-js": "^1.10.10",
     "@grpc/proto-loader": "^0.7.13",
     "@nestjs/axios": "^3.0.2",

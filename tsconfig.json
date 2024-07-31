@@ -6,7 +6,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "baseUrl": ".",
     "paths": {
+      "@forex-marketplace-microservices/libraries": ["libraries/src/index.ts"],
+      "libraries": ["libraries/src/index.ts"],
       "proto": ["./libs/src/index.ts"],
       "protos": ["./protos/index.ts"]
     }

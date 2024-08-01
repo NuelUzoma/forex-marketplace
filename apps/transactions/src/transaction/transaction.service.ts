@@ -12,6 +12,7 @@ import { CreateOrderDto } from "../order/dto/order.dto";
 import { GetRateRequest } from "../../../../protos/generated/rate/GetRateRequest";
 import { GetRateResponse__Output } from "../../../../protos/generated/rate/GetRateResponse";
 import { UpdateBalanceRequest } from "../../../../protos/generated/wallet/UpdateBalanceRequest";
+import { ValidationException } from "../../../../libraries/src/index";
 
 
 @Injectable()
@@ -54,79 +55,87 @@ export class TransactionOrderService implements OnModuleInit {
 
     // Create exchange transaction between a single user wallet
     async createExchangeTransaction(data: CreateTransactionDto): Promise<Transaction> {
-        const getRateRequest: GetRateRequest = {
-            fromCurrency: data.fromCurrency,
-            toCurrency: data.toCurrency,
-        };
-
-        // Fetch the current rates from the rates microservice
-        const rateResponse = await new Promise<GetRateResponse__Output>((resolve, reject) => {
-            this.rateService.getRate(getRateRequest, (error, response) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    // @ts-ignore
-                    resolve(response);
-                }
+        try {
+            const getRateRequest: GetRateRequest = {
+                fromCurrency: data.fromCurrency,
+                toCurrency: data.toCurrency,
+            };
+    
+            // Fetch the current rates from the rates microservice
+            const rateResponse = await new Promise<GetRateResponse__Output>((resolve, reject) => {
+                this.rateService.getRate(getRateRequest, (error, response) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        // @ts-ignore
+                        resolve(response);
+                    }
+                });
             });
-        });
-
-        const rate = rateResponse.rate; // rate
-        const transaction = this.transactionRepository.create({
-            ...data,
-            exchangeRate: rate,
-            toAmount: data.fromAmount * Number(rate),
-            status: 'pending',
-            timestamp: new Date()
-        });
-
-        // Update wallet balances
-        const updateBalanceSenderRequest: UpdateBalanceRequest = { // Sender
-            userId: data.userId,
-            currency: data.fromCurrency,
-            amount: -data.fromAmount
+    
+            const rate = rateResponse.rate; // rate
+            const transaction = this.transactionRepository.create({
+                ...data,
+                exchangeRate: rate,
+                toAmount: data.fromAmount * Number(rate),
+                status: 'pending',
+                timestamp: new Date()
+            });
+    
+            // Update wallet balances
+            const updateBalanceSenderRequest: UpdateBalanceRequest = { // Sender
+                userId: data.userId,
+                currency: data.fromCurrency,
+                amount: -data.fromAmount
+            }
+    
+            const updateBalanceReciepientRequest: UpdateBalanceRequest = { // Reciepient
+                userId: data.userId,
+                currency: data.toCurrency,
+                amount: transaction.toAmount
+            }
+    
+            await new Promise((resolve, reject) => {
+                this.walletService.updateBalance(updateBalanceSenderRequest, (error, response) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(response);
+                    }
+                });
+            });
+    
+            await new Promise((resolve, reject) => {
+                this.walletService.updateBalance(updateBalanceReciepientRequest, (error, response) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(response);
+                    }
+                });
+            });
+    
+            // Update the transaction status
+            transaction.status = 'completed';
+            return this.transactionRepository.save(transaction);
+        } catch (error) {
+            throw new ValidationException(`Failed to create exchange transaction: ${error}`)
         }
-
-        const updateBalanceReciepientRequest: UpdateBalanceRequest = { // Reciepient
-            userId: data.userId,
-            currency: data.toCurrency,
-            amount: transaction.toAmount
-        }
-
-        await new Promise((resolve, reject) => {
-            this.walletService.updateBalance(updateBalanceSenderRequest, (error, response) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(response);
-                }
-            });
-        });
-
-        await new Promise((resolve, reject) => {
-            this.walletService.updateBalance(updateBalanceReciepientRequest, (error, response) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(response);
-                }
-            });
-        });
-
-        // Update the transaction status
-        transaction.status = 'completed';
-        return this.transactionRepository.save(transaction);
     }
 
     // Create Order
     async createOrder(data: CreateOrderDto): Promise<Order> {
-        const order = this.orderRepository.create({
-            ...data,
-            status: 'pending',
-            createdAt: new Date()
-        });
-        
-        return this.orderRepository.save(order);
+        try{
+            const order = this.orderRepository.create({
+                ...data,
+                status: 'pending',
+                createdAt: new Date()
+            });
+            
+            return this.orderRepository.save(order);
+        } catch (error) {
+            throw new ValidationException(`Failed to create Order: ${error}`)
+        }
     }
 
     // Get the user transaction history

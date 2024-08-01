@@ -1,16 +1,16 @@
 /**
  * Custom Exceptions to be used throught the microservices
  * The custom exceptions are listed below:
- * 1. UserNotFoundException
+ * 1. NotFoundException
  * 2. ValidationException
 */
 
-export class UserNotFoundException extends Error {
+export class NotFoundException extends Error {
     constructor(
         message: string
     ) {
         super(message);
-        this.name = 'UserNotFoundException';
+        this.name = 'NotFoundException';
     }
 };
 

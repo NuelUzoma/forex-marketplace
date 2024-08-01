@@ -10,6 +10,7 @@ import { UserServiceClient } from '../../../../protos/generated/user/UserService
 import { UpdateBalanceRequest } from "../../../../protos/generated/wallet/UpdateBalanceRequest";
 import { CurrencyBalance } from './entities/currencyBalance.entity';
 import { UpdateBalanceResponse } from '../../../../protos/generated/wallet/UpdateBalanceResponse';
+import { NotFoundException, ValidationException } from "../../../../libraries/src/index";
 
 
 @Injectable()
@@ -43,7 +44,7 @@ export class WalletService implements OnModuleInit {
             const userResponse: GetUserByIdResponse = await this.userService.GetUserById({ userId: walletDto.userId });
             
             if (!userResponse) {
-                throw new Error('User not found');
+                throw new NotFoundException('User not found');
             }
             
             const wallet = this.walletRepository.create({ userId: walletDto.userId });
@@ -59,8 +60,8 @@ export class WalletService implements OnModuleInit {
             }
 
             return savedWallet;
-        } catch (error) {
-            throw new Error(`Error creating wallet: ${error}`);
+        } catch (error: any) {
+            throw new ValidationException(`Error creating wallet: ${error.message}`);
         }
     }
 
@@ -72,7 +73,7 @@ export class WalletService implements OnModuleInit {
         });
         
         if (!wallet) {
-            throw new Error('Wallet not found!');
+            throw new NotFoundException('Wallet not found!');
         }
 
         return wallet;
@@ -86,7 +87,7 @@ export class WalletService implements OnModuleInit {
         const currencyBalance = wallet.currencyBalances.find(cb => cb.currency === currency);
 
         if (!currencyBalance) {
-            throw new Error(`Balance for currency ${currency} not found`);
+            throw new NotFoundException(`Balance for currency ${currency} not found`);
         }
 
         // Return the balance
@@ -130,7 +131,7 @@ export class WalletService implements OnModuleInit {
         try {
             // Deposit amount validation
             if (amount <= 0) {
-                throw new Error('Transfer amount must be greater than 0');
+                throw new ValidationException('Transfer amount must be greater than 0');
             }
 
             const senderWallet = await this.getWalletByUserId(senderId); // Sender's wallet
@@ -138,13 +139,13 @@ export class WalletService implements OnModuleInit {
 
             // Prohibit funds deposit to one's wallet
             if (senderWallet.userId === reciepientWallet.userId) {
-                throw new Error('Transfer to your own wallet is prohibited');
+                throw new ValidationException('Transfer to your own wallet is prohibited');
             }
 
             // Retrieve balance and check for insufficient funds for transfer
             const senderBalance = await this.getBalance(senderId, fromCurrency);
             if (senderBalance < amount) {
-                throw new Error('Insufficient Balance');
+                throw new ValidationException('Insufficient Balance');
             }
 
             const toAmount = amount * exchangeRate;
@@ -164,7 +165,7 @@ export class WalletService implements OnModuleInit {
             await this.updateBalance(updateBalanceSenderRequest);
             await this.updateBalance(updateBalanceReciepientRequest);
         } catch (err) {
-            throw new Error(`Cannot perform transfer: ${err}`);
+            throw new ValidationException(`Cannot perform transfer: ${err}`);
         }
     }
 }

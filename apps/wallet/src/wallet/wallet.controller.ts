@@ -1,14 +1,16 @@
-import { Controller, Post, Body, Get, Put, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param, UseGuards, Request, UseFilters } from '@nestjs/common';
 import { Wallet } from './entities/wallet.entity';
 import { WalletDto } from './dto/wallet.dto';
 import { WalletService } from './wallet.service';
-import { AuthGuard } from '../../../../authentication/auth.guard'
+import { AuthGuard } from '../../../../authentication/auth.guard';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UpdateBalanceRequest } from '../../../../protos/generated/wallet/UpdateBalanceRequest';
 import { UpdateBalanceResponse } from "../../../../protos/generated/wallet/UpdateBalanceResponse";
+import { HttpExceptionFilter } from '../../../../libraries/src';
 
 
 @Controller('wallets')
+@UseFilters(HttpExceptionFilter)
 @UseGuards(AuthGuard)
 export class WalletController {
     constructor(

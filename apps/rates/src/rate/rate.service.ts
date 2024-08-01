@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { GetRateRequest } from "../../../../protos/generated/rate/GetRateRequest";
 import { GetRateResponse } from "../../../../protos/generated/rate/GetRateResponse";
 import { ConfigService } from '@nestjs/config';
+import { ValidationException } from "../../../../libraries/src/index";
 
 @Injectable()
 export class RateService {
@@ -29,16 +30,15 @@ export class RateService {
             // Processing response data
             if (response?.data.result === 'success') {
                 const rates = response.data.conversion_rates;
-                Logger.log('Fetched rates: ', rates);
 
                 // Update local rates with fetched data from API
                 this.rates = rates;
             } else {
-                throw new Error('API request was not successful');
+                throw new ValidationException('API request was not successful');
             }
         } catch (error) {
             Logger.log('Full error: ', error);
-            throw new Error(`Failed to fetch new rates: ${error}`);
+            throw new ValidationException(`Failed to fetch new rates: ${error}`);
         }
     }
 

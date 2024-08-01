@@ -7,10 +7,10 @@
 
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
-import { UserNotFoundException, ValidationException } from "../exceptions/custom.exception";
+import { NotFoundException, ValidationException } from "../exceptions/custom.exception";
 
 // @ts-ignore: Suppress TS1238 error. Multiple exception types are valid for @Catch decorator.
-@Catch(HttpException, UserNotFoundException, ValidationException)
+@Catch(HttpException, NotFoundException, ValidationException)
 export class HttpExceptionFilter implements ExceptionFilter {
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
@@ -24,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (exception instanceof HttpException) {
             status = exception.getStatus();
             message = exception.message;
-        } else if (exception instanceof UserNotFoundException) {
+        } else if (exception instanceof NotFoundException) {
             status = HttpStatus.NOT_FOUND;
             message = exception.message;
         } else if (exception instanceof ValidationException) {

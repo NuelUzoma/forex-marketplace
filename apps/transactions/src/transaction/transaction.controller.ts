@@ -1,12 +1,16 @@
-import { Body, Controller, Get, Post, Request } from "@nestjs/common";
+import { Body, Controller, Get, Post, Request, UseFilters, UseGuards } from "@nestjs/common";
 import { GrpcMethod } from "@nestjs/microservices";
+import { AuthGuard } from '../../../../authentication/auth.guard'
 import { TransactionOrderService } from "./transaction.service";
 import { CreateTransactionDto } from "./dto/transaction.dto";
 import { CreateOrderDto } from "../order/dto/order.dto";
 import { Transaction } from "./entities/transaction.entity";
 import { Order } from "src/order/entities/order.entity";
+import { HttpExceptionFilter } from "../../../../libraries/src";
 
 @Controller()
+@UseFilters(HttpExceptionFilter)
+@UseGuards(AuthGuard)
 export class TransactionController {
     constructor(
         private readonly transactionOrderService: TransactionOrderService
